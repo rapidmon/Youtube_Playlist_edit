@@ -7,19 +7,21 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/react": "^19.1.5",
     "axios": "^1.9.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
     "react-scripts": "5.0.1",
     "styled-components": "^6.1.18",
+    "styled-reset": "^4.5.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "webpack",
     "dev": "webpack --watch",
-    "bootstrap": "npm install --save-dev @types/d3 ts-loader typescript@4.9.5 terser-webpack-plugin css-loader css-minimizer-webpack-plugin html-webpack-plugin mini-css-extract-plugin webpack webpack-cli webpack-dev-server webpack-remove-empty-scripts d3 license-webpack-plugin",
+    "bootstrap": "npm install --save-dev @types/react @types/react-dom @types/d3 @types/styled-components ts-loader styled-reset typescript@4.9.5 terser-webpack-plugin css-loader css-minimizer-webpack-plugin html-webpack-plugin mini-css-extract-plugin webpack webpack-cli webpack-dev-server webpack-remove-empty-scripts d3 license-webpack-plugin",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -43,6 +45,8 @@
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
+    "@types/react-dom": "^19.1.5",
+    "@types/styled-components": "^5.1.34",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.2",
     "d3": "^7.9.0",
