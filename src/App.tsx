@@ -58,11 +58,27 @@ const ListItem = styled.li`
   padding: 8px 12px;
   border-bottom: 1px solid #ddd;
   font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 `;
+
+const Thumbnail = styled.img`
+  width: 120px;
+  height: auto;
+  border-radius: 4px;
+  cursor: pointer;
+`
+
+const Link = styled.a`
+  color: black;
+  text-decoration: none;
+
+`
 
 function App() {
   const [playlistUrl, setPlaylistUrl] = useState('');
-  const [videos, setVideos] = useState<{ videoId: string; title: string }[]>([]);
+  const [videos, setVideos] = useState<{ videoId: string; title: string; url: string; thumbnail: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const FUNCTION_URL = 'https://ebvq4aiwxwcswb4oe5a6di72rq0eeorh.lambda-url.ap-southeast-2.on.aws/';
@@ -80,7 +96,7 @@ function App() {
       const response = await fetch(FUNCTION_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playlistUrl }),
+        body: JSON.stringify({ url: playlistUrl }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
@@ -107,12 +123,19 @@ function App() {
           <SubmitButton type="submit">Go</SubmitButton>
         </Form>
 
-        {loading && <p>로딩 중...</p>}
+        {loading && <p>플레이 리스트 불러오는 중...</p>}
         {error && <p style={{ color: 'red' }}>에러: {error}</p>}
 
         <List>
-          {videos.map((video) => (
-            <ListItem key={video.videoId}>{video.title}</ListItem>
+          {videos.map((video, index) => (
+            <ListItem key={`${video.videoId}-${index}`}>
+              <Link href={video.url} target="_blank" rel="noopener noreferrer">
+                <Thumbnail src={video.thumbnail} alt={video.title} />
+              </Link>
+              <Link href={video.url} target="_blank" rel="noopener noreferrer">
+                {index + 1}. {video.title}
+              </Link>
+            </ListItem>
           ))}
         </List>
       </AppContainer>
