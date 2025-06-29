@@ -81,7 +81,7 @@ function App() {
   const [videos, setVideos] = useState<{ videoId: string; title: string; url: string; thumbnail: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const FUNCTION_URL = 'https://ebvq4aiwxwcswb4oe5a6di72rq0eeorh.lambda-url.ap-southeast-2.on.aws/';
+  const FUNCTION_URL = 'https://x3xsycktqdflzobc6sqcg72rfe0wikxn.lambda-url.ap-southeast-2.on.aws/';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPlaylistUrl(e.target.value);
@@ -94,11 +94,10 @@ function App() {
     setError('');
     try {
       const response = await fetch(FUNCTION_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: playlistUrl }),
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       setVideos(data.videos || []);
     } catch (err: any) {
@@ -130,7 +129,7 @@ function App() {
           {videos.map((video, index) => (
             <ListItem key={`${video.videoId}-${index}`}>
               <Link href={video.url} target="_blank" rel="noopener noreferrer">
-                <Thumbnail src={video.thumbnail} alt={video.title} />
+                <Thumbnail src={`https://img.youtube.com/vi/${video.videoId}/default.jpg`} alt={video.title} />
               </Link>
               <Link href={video.url} target="_blank" rel="noopener noreferrer">
                 {index + 1}. {video.title}

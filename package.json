@@ -21,7 +21,6 @@
     "start": "react-scripts start",
     "build": "webpack",
     "dev": "webpack --watch",
-    "bootstrap": "npm install --save-dev @types/react @types/react-dom @types/d3 @types/styled-components ts-loader styled-reset typescript@4.9.5 terser-webpack-plugin css-loader css-minimizer-webpack-plugin html-webpack-plugin mini-css-extract-plugin webpack webpack-cli webpack-dev-server webpack-remove-empty-scripts d3 license-webpack-plugin",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
