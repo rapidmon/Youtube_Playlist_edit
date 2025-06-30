@@ -1,6 +1,7 @@
 import { createGlobalStyle, styled } from 'styled-components';
 import reset from 'styled-reset';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { MusicList } from './components/list';
 
 const Globalstyle = createGlobalStyle`
   ${reset}
@@ -46,40 +47,22 @@ const SubmitButton = styled.button`
   &:hover {
     background-color: #005bb5;
   }
+  &:disabled {
+    background-color: gray;
+    cursor: default;
+  }
 `;
 
-const List = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
+const StateText = styled.p<{ type?: 'error' | 'loading' }>`
+  font-size: ${({ type }) => (type === 'error' ? '16px' : '14px')};
+  color: ${({ type }) => (type === 'error' ? '#ff5151' : 'gray')};
 `;
-
-const ListItem = styled.li`
-  padding: 8px 12px;
-  border-bottom: 1px solid #ddd;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
-const Thumbnail = styled.img`
-  width: 120px;
-  height: auto;
-  border-radius: 4px;
-  cursor: pointer;
-`
-
-const Link = styled.a`
-  color: black;
-  text-decoration: none;
-
-`
 
 function App() {
   const [playlistUrl, setPlaylistUrl] = useState('');
-  const [videos, setVideos] = useState<{ videoId: string; title: string; url: string; thumbnail: string }[]>([]);
+  const [videos, setVideos] = useState<{ videoId: string; title: string; url: string; uploader: string;}[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loading_dots, setLoading_dots] = useState('');
   const [error, setError] = useState('');
   const FUNCTION_URL = 'https://x3xsycktqdflzobc6sqcg72rfe0wikxn.lambda-url.ap-southeast-2.on.aws/';
 
@@ -99,6 +82,7 @@ function App() {
         body: JSON.stringify({ url: playlistUrl }),
       });
       const data = await response.json();
+      console.log(data);
       setVideos(data.videos || []);
     } catch (err: any) {
       setError(err.message || '알 수 없는 에러');
@@ -106,6 +90,18 @@ function App() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if(!loading) return;
+    const interval = setInterval(() => {
+      setLoading_dots((prev) => {
+        if(prev === '...') return '';
+        return prev + '.';
+      })
+    }, 500)
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   return (
     <>
@@ -119,24 +115,13 @@ function App() {
             value={playlistUrl}
             onChange={handleChange}
           />
-          <SubmitButton type="submit">Go</SubmitButton>
+          <SubmitButton type="submit" disabled={loading}>Go</SubmitButton>
         </Form>
 
-        {loading && <p>플레이 리스트 불러오는 중...</p>}
-        {error && <p style={{ color: 'red' }}>에러: {error}</p>}
+        <MusicList videos={videos}></MusicList>
+        {loading && <StateText type='loading'>플레이 리스트 불러오는 중{loading_dots}</StateText>}
+        {error && <StateText type='error'>에러: {error}</StateText>}
 
-        <List>
-          {videos.map((video, index) => (
-            <ListItem key={`${video.videoId}-${index}`}>
-              <Link href={video.url} target="_blank" rel="noopener noreferrer">
-                <Thumbnail src={`https://img.youtube.com/vi/${video.videoId}/default.jpg`} alt={video.title} />
-              </Link>
-              <Link href={video.url} target="_blank" rel="noopener noreferrer">
-                {index + 1}. {video.title}
-              </Link>
-            </ListItem>
-          ))}
-        </List>
       </AppContainer>
     </>
   );
