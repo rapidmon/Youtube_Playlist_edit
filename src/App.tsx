@@ -82,7 +82,6 @@ function App() {
         body: JSON.stringify({ url: playlistUrl }),
       });
       const data = await response.json();
-      console.log(data);
       setVideos(data.videos || []);
     } catch (err: any) {
       setError(err.message || '알 수 없는 에러');
@@ -90,6 +89,10 @@ function App() {
       setLoading(false);
     }
   };
+
+  // const handleDelete = (id: string) => {
+  //   setVideos(prev => prev.filter(v => v.videoId !== id));
+  // }
 
   useEffect(() => {
     if(!loading) return;
