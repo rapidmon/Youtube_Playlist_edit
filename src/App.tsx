@@ -18,12 +18,9 @@ const Globalstyle = createGlobalStyle`
   ${reset}
   
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: #333;
+    background-color: #bebeec;
   }
   
   * {
@@ -40,7 +37,7 @@ const AppContainer = styled.main`
 
 const Header = styled.div`
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
   ${css`
     animation: ${fadeIn} 0.6s ease-out;
   `}
@@ -49,16 +46,11 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 42px;
   font-weight: 800;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin-bottom: 20px;
   text-shadow: 0 4px 12px rgba(0,0,0,0.1);
 `;
 
 const Subtitle = styled.p`
-  color: rgba(255,255,255,0.8);
   font-size: 18px;
   font-weight: 300;
 `;
@@ -214,6 +206,76 @@ const StateText = styled.p<{ type?: 'error' | 'loading' }>`
   `}
 `;
 
+const SearchSection = styled.div`
+  margin-bottom: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 193, 7, 0.2);
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 12px 16px;
+  padding-left: 40px;
+  font-size: 16px;
+  border: 2px solid #ffb74d;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease;
+  background: #fff;
+  
+  &:focus {
+    border-color: #ff9800;
+    box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.1);
+    transform: translateY(-1px);
+  }
+  
+  &::placeholder {
+    color: #bcaaa4;
+  }
+`;
+
+const SearchContainer = styled.div`
+  position: relative;
+  
+  &::before {
+    content: '🔍';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    z-index: 1;
+  }
+`;
+
+const SearchStats = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #8d6e63;
+`;
+
+const ClearButton = styled.button`
+  background: none;
+  border: none;
+  color: #ff9800;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 152, 0, 0.1);
+    transform: translateY(-1px);
+  }
+`;
+
 const VideoCount = styled.div`
   text-align: center;
   margin: 16px 0;
@@ -228,14 +290,45 @@ function App() {
   const [playlistUrl, setPlaylistUrl] = useState('');
   const [state, dispatch] = useReducer(reducer, { videos: [] });
   const { videos } = state;
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [loading_dots, setLoading_dots] = useState('');
   const [error, setError] = useState('');
   const FUNCTION_URL = 'https://x3xsycktqdflzobc6sqcg72rfe0wikxn.lambda-url.ap-southeast-2.on.aws/';
 
+  // 한글 자음/모음 단일 입력 체크 함수
+  const isIncompleteKorean = (text: string) => {
+    const trimmed = text.trim();
+    if (trimmed.length !== 1) return false;
+    
+    const char = trimmed.charCodeAt(0);
+    // 한글 자음 (ㄱ-ㅎ): 0x3131-0x314E
+    // 한글 모음 (ㅏ-ㅣ): 0x314F-0x3163
+    return (char >= 0x3131 && char <= 0x314E) || (char >= 0x314F && char <= 0x3163);
+  };
+
+  // 검색 필터링
+  const filteredVideos = videos.filter(video => {
+    if (!searchQuery.trim() || isIncompleteKorean(searchQuery)) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const title = (video.title || '').toLowerCase();
+    const uploader = (video.uploader || '').toLowerCase();
+    
+    return title.includes(query) || uploader.includes(query);
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPlaylistUrl(e.target.value);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -298,7 +391,7 @@ function App() {
       <Globalstyle />
       <AppContainer>
         <Header>
-          <Title>🎵 YouTube Playlist Editor</Title>
+          <Title>YouTube Playlist Editor</Title>
           <Subtitle>플레이리스트를 불러와서 편집하고 정렬해보세요</Subtitle>
         </Header>
         
@@ -320,6 +413,29 @@ function App() {
               <VideoCount>
                 📊 총 {videos.length}개의 비디오
               </VideoCount>
+              
+              <SearchSection>
+                <SearchContainer>
+                  <SearchInput
+                    type="text"
+                    placeholder="제목이나 가수명으로 검색하세요..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+                </SearchContainer>
+                <SearchStats>
+                  <span>
+                    {searchQuery.trim() && !isIncompleteKorean(searchQuery) 
+                      ? `${filteredVideos.length}개 항목 검색됨` 
+                      : '전체 항목 표시'}
+                  </span>
+                  {searchQuery.trim() && !isIncompleteKorean(searchQuery) && (
+                    <ClearButton onClick={handleClearSearch}>
+                      ✕ 검색 초기화
+                    </ClearButton>
+                  )}
+                </SearchStats>
+              </SearchSection>
               
               <ControlsSection>
                 <SortGroup>
@@ -353,7 +469,7 @@ function App() {
             </>
           )}
 
-          <MusicList videos={videos} onDelete={handleDelete} onReorder={handleReorder} />
+          <MusicList videos={filteredVideos} onDelete={handleDelete} onReorder={handleReorder} searchQuery={searchQuery} />
           
           {loading && (
             <StateText type='loading'>

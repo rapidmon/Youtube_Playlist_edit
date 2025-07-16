@@ -1,13 +1,13 @@
-import { styled, keyframes, css } from 'styled-components';
+import { styled } from 'styled-components';
 import trash_can from '../assets/images/trash_can.svg';
 import { Video } from '../types';
 import { useState, useRef, useEffect } from 'react';
 
-const dragHover = keyframes`
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-  100% { transform: translateY(0); }
-`;
+// const dragHover = keyframes`
+//   0% { transform: translateY(0); }
+//   50% { transform: translateY(-2px); }
+//   100% { transform: translateY(0); }
+// `;
 
 const List = styled.ul`
     list-style: none;
@@ -46,7 +46,6 @@ const ListItem = styled.li<{
     
     opacity: ${props => props.$isDragging ? 0.6 : 1};
     transform: ${props => 
-        props.$isDragging ? 'rotate(3deg) scale(1.02)' : 
         props.$isDragOver ? 'translateY(-2px)' : 'translateY(0)'};
     
     box-shadow: ${props => 
@@ -139,19 +138,47 @@ const AutoScrollZone = styled.div<{ $position: 'top' | 'bottom'; $active: boolea
     
     &::before {
         content: '${props => props.$active ? (props.$position === 'top' ? '↑ 스크롤' : '↓ 스크롤') : ''}';
-        ${props => props.$active && css`
-            animation: ${dragHover} 1s ease-in-out infinite;
-        `}
     }
+`;
+
+const HighlightedText = styled.span`
+    background: linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%);
+    color: #e65100;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(230, 81, 0, 0.2);
 `;
 
 type MusicListProps = {
     videos: Video[];
     onDelete: (videoId: string) => void;
     onReorder: (oldIndex: number, newIndex: number) => void;
+    searchQuery?: string;
 };
 
-export function MusicList({ videos, onDelete, onReorder }: MusicListProps) {
+// 한글 자음/모음 단일 입력 체크 함수
+const isIncompleteKorean = (text: string) => {
+    const trimmed = text.trim();
+    if (trimmed.length !== 1) return false;
+    
+    const char = trimmed.charCodeAt(0);
+    return (char >= 0x3131 && char <= 0x314E) || (char >= 0x314F && char <= 0x3163);
+};
+
+// 검색어 하이라이팅 함수
+const highlightText = (text: string, query: string) => {
+    if (!query.trim() || !text || isIncompleteKorean(query)) return text || '';
+    
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, index) => 
+        part.toLowerCase() === query.toLowerCase() 
+            ? <HighlightedText key={index}>{part}</HighlightedText>
+            : part
+    );
+};
+
+export function MusicList({ videos, onDelete, onReorder, searchQuery = '' }: MusicListProps) {
     const [draggedItem, setDraggedItem] = useState<Video | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     const [autoScrolling, setAutoScrolling] = useState<'up' | 'down' | null>(null);
@@ -279,11 +306,11 @@ export function MusicList({ videos, onDelete, onReorder }: MusicListProps) {
                             <Link href={video.url} target="_blank" rel="noopener noreferrer">
                                 <Thumbnail 
                                     src={`https://img.youtube.com/vi/${video.videoId}/default.jpg`} 
-                                    alt={video.title}
+                                    alt={video.title || '썸네일'}
                                 />
                             </Link>
                             <Link href={video.url} target="_blank" rel="noopener noreferrer">
-                                {index + 1}. {video.title}<br/>{video.uploader}
+                                {index + 1}. {highlightText(video.title || '제목 없음', searchQuery)}<br/>{highlightText(video.uploader || '가수 정보 없음', searchQuery)}
                             </Link>
                             <DeleteBtn onClick={() => onDelete(video.videoId)}></DeleteBtn>
                         </ListItem>
